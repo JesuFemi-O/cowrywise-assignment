@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from .serializers import TimeStampSerializer
 import uuid
 
-# Create your views here.
 list_cache = []
 
 
