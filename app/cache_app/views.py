@@ -19,9 +19,7 @@ class NaiveAPIView(GenericAPIView):
         _id = str(uuid.uuid4())
         list_cache.append((timestamp, _id))
 
-        result = {}
-        for k, v in sorted(list_cache, reverse=True):
-            result[k] = v
+        result = {k: v for k, v in sorted(list_cache, reverse=True)}
         return Response(data=result, status=status.HTTP_200_OK)
 
 
@@ -52,7 +50,6 @@ class CachedAPIView(GenericAPIView):
             cache.set(cache_key, timestamp_data)
 
             # sort and send response back to user
-            result = {}
-            for k, v in sorted(timestamp_data.items(), reverse=True):
-                result[k] = v
+            result = {k: v for k, v in sorted(
+                timestamp_data.items(), reverse=True)}
             return Response(data=result, status=status.HTTP_200_OK)
