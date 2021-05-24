@@ -8,50 +8,51 @@ from .serializers import TimeStampSerializer
 import uuid
 
 # Create your views here.
-dx = []
+list_cache = []
 
 
 class NaiveAPIView(GenericAPIView):
     serializer_class = TimeStampSerializer
 
     def get(self, request, *args, **kwargs):
-        ts = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S.%f")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S.%f")
         _id = str(uuid.uuid4())
-        dx.append((ts, _id))
-        res = {}
-        for k, v in sorted(dx, reverse=True):
-            res[k] = v
-        return Response(data=res, status=status.HTTP_200_OK)
+        list_cache.append((timestamp, _id))
+
+        result = {}
+        for k, v in sorted(list_cache, reverse=True):
+            result[k] = v
+        return Response(data=result, status=status.HTTP_200_OK)
 
 
 class CachedAPIView(GenericAPIView):
     serializer_class = TimeStampSerializer
 
     def get(self, request, *args, **kwargs):
-        ts = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S.%f")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S.%f")
         _id = str(uuid.uuid4())
 
         cache_key = "timestamps"
 
-        ts_data = cache.get(cache_key)
+        timestamp_data = cache.get(cache_key)
 
-        if not ts_data:
+        if not timestamp_data:
             # set the key
-            cache.set(cache_key, {ts: _id})
-            ts_data = {ts: _id}
-            return Response(data=ts_data, status=status.HTTP_200_OK)
+            cache.set(cache_key, {timestamp: _id})
+            timestamp_data = {timestamp: _id}
+            return Response(data=timestamp_data, status=status.HTTP_200_OK)
         else:
             # add new data
-            ts_data[ts] = _id
+            timestamp_data[timestamp] = _id
 
             # invalidate old cache
             cache.delete(cache_key)
 
             # update cache
-            cache.set(cache_key, ts_data)
+            cache.set(cache_key, timestamp_data)
 
             # sort and send response back to user
-            res = {}
-            for k, v in sorted(ts_data.items(), reverse=True):
-                res[k] = v
-            return Response(data=ts_data, status=status.HTTP_200_OK)
+            result = {}
+            for k, v in sorted(timestamp_data.items(), reverse=True):
+                result[k] = v
+            return Response(data=result, status=status.HTTP_200_OK)
