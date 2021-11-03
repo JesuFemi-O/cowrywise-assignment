@@ -9,8 +9,11 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+from dotenv import load_dotenv
 from pathlib import Path
+import os
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -127,11 +130,31 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CACHE_HOST = 'cache'
-CACHE_PORT = 11211
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-        'LOCATION': f'{CACHE_HOST}:{CACHE_PORT}',
+CACHING_BACKEND = os.environ.get('USER_CACHE_BACKEND')
+
+# MEMCACHED SETUP
+
+if CACHING_BACKEND.lower() == 'memcached':
+
+    CACHE_HOST = 'cache'
+    CACHE_PORT = 11211
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+            'LOCATION': f'{CACHE_HOST}:{CACHE_PORT}',
+        }
     }
-}
+else:
+    # REDIS SETUP
+    CACHE_TTL = 60 * 15
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient"
+            },
+            # "KEY_PREFIX": "example"
+        }
+    }
